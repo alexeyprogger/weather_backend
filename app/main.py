@@ -21,7 +21,7 @@ def predict_frost_route():
     result = handle_weather_request(api_key, city, nn)
     
     if 'error' in result:
-        return jsonify(result), 500
+        return jsonify({"error": "Are you sure you have a file with trained NN?"}), 500
     else:
         return jsonify(result), 200
 
