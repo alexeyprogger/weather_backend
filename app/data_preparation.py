@@ -2,7 +2,6 @@ from data_preprocessing import filter_data_by_time, decode_temp, decode_rosa, de
 import pandas as pd
 
 def load_and_prepare_data(file_path):
-    # Загрузка данных
     data = pd.read_excel(file_path)
     data['Местное время в Самаре'] = pd.to_datetime(data['Местное время в Самаре'], dayfirst=True)
 
