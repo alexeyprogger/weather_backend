@@ -1,7 +1,14 @@
-from data_preprocessing import filter_data_by_time, decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity
+from .data_preprocessing import filter_data_by_time, decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity
 import pandas as pd
 
 def load_and_prepare_data(file_path):
+    """
+    Загружает и подготавливает данные для обучения.
+    Параметры:
+    file_path (str): Путь к файлу Excel, содержащему данные.
+    Возвращает:
+    list: Список списков, где каждый вложенный список содержит данные для одного образца (метки и признаки).
+    """
     data = pd.read_excel(file_path)
     data['Местное время в Самаре'] = pd.to_datetime(data['Местное время в Самаре'], dayfirst=True)
 

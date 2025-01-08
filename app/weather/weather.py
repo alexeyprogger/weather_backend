@@ -2,11 +2,21 @@ import requests
 import numpy as np
 import logging
 import pandas as pd
-from data_preprocessing import decode_weatherapi_cloudiness, decode_rp5_cloudiness
+from app.utils.data_preprocessing import decode_weatherapi_cloudiness, decode_rp5_cloudiness
 
 logger = logging.getLogger("WeatherAppLogger")
 
 def get_weather_data(api_key, city):
+    """
+    Получает данные о погоде по API (WeatherAPI).
+
+    Эта функция выполняет запрос к API погоды для получения прогноза на текущий день 
+    и извлекает данные о температуре, точке росы, влажности и облачности за 13:00 и 22:00.
+
+    Параметры:
+    api_key: API ключ для доступа к WeatherAPI.
+    city: Название города для получения прогноза.
+    """
     url = f"http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={city}&days=1&aqi=no&alerts=no"
     response = requests.get(url)
     
@@ -34,26 +44,34 @@ def get_weather_data(api_key, city):
     else:
         raise ConnectionError(f"Ошибка при запросе к API: {response.status_code}")
 
-# Функция для предсказания заморозка
 def predict_frost(nn, current_day_data):
-    # Преобразование данных текущего дня в формат, подходящий для сети
-    inputs = np.asfarray([
-        0.01 * current_day_data['T13'] + 0.5,  # Температура в 13:00, нормализация
-        0.01 * current_day_data['T22'] + 0.5,  # Температура в 22:00, нормализация
-        0.01 * current_day_data['Td13'] + 0.5, # Точка росы в 13:00, нормализация
-        0.01 * current_day_data['Td22'] + 0.5, # Точка росы в 22:00, нормализация
-        0.01 * current_day_data['U13'] - 0.01, # Влажность в 13:00, нормализация
-        0.01 * current_day_data['U22'] - 0.01, # Влажность в 22:00, нормализация
-        decode_rp5_cloudiness(pd.DataFrame({'N': [current_day_data['N13']]})).iloc[0], # Облачность в 13:00
-        decode_rp5_cloudiness(pd.DataFrame({'N': [current_day_data['N22']]})).iloc[0]  # Облачность в 22:00
-    ])
+    """
+    Предсказывает возможность заморозков на основе текущих погодных данных.
+    Функция преобразует данные о температуре, точке росы, влажности и облачности в формат,
+    подходящий для нейронной сети, и предсказывает наличие заморозков (1 - заморозки, 0 - без заморозков).
+    Параметры:
+    nn: Объект нейронной сети для предсказания.
+    current_day_data: Данные о погоде за текущий день, включая температуру, точку росы, влажность и облачность.
+    """
+    inputs = np.asarray([
+    0.01 * current_day_data['T13'] + 0.5,  # Температура в 13:00, нормализация
+    0.01 * current_day_data['T22'] + 0.5,  # Температура в 22:00, нормализация
+    0.01 * current_day_data['Td13'] + 0.5, # Точка росы в 13:00, нормализация
+    0.01 * current_day_data['Td22'] + 0.5, # Точка росы в 22:00, нормализация
+    0.01 * current_day_data['U13'] - 0.01, # Влажность в 13:00, нормализация
+    0.01 * current_day_data['U22'] - 0.01, # Влажность в 22:00, нормализация
+    decode_rp5_cloudiness(pd.DataFrame({'N': [current_day_data['N13']]})).iloc[0], # Облачность в 13:00
+    decode_rp5_cloudiness(pd.DataFrame({'N': [current_day_data['N22']]})).iloc[0]  # Облачность в 22:00
+], dtype=float)
 
     outputs = nn.query(inputs)
     predicted_label = np.argmax(outputs)
     return predicted_label
 
-# Основная функция для обработки запроса
 def handle_weather_request(api_key, city, nn):
+    """
+    Обрабатывает запрос к API погоды, получает данные и делает предсказание на основе нейронной сети.
+    """
     try:
         current_day = get_weather_data(api_key, city)
         logger.info("Данные за сегодняшний день успешно получены.") 

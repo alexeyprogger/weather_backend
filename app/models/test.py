@@ -1,21 +1,17 @@
-import numpy
+import numpy as np
 import pandas as pd
-from models import load_model
-from data_preparation import filter_data_by_time, decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity
+from .model import load_model
+from app.utils.data_preparation import filter_data_by_time, decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity
 
-# Загрузка обученной модели
 MODEL_PATH = "neural_network_model.pkl"
 nn = load_model(MODEL_PATH)
 
-# Тестовые данные
-test_data_list = pd.read_excel("Samara_test.xls")
+test_data_list = pd.read_excel("data/Samara_test.xls")
 test_data_list['Местное время в Самаре'] = pd.to_datetime(test_data_list['Местное время в Самаре'], dayfirst=True)
 
-# Фильтрация тестовых данных по времени
 time_points = ['13:00', '07:00', '04:00', '01:00', '22:00']
 filtered_test_data = { time: filter_data_by_time(test_data_list, time) for time in time_points }
 
-# Применение декодирования к тестовым данным
 decoded_test_data = {
     '13:00': {
         'T': decode_temp(filtered_test_data['13:00']),
@@ -34,16 +30,14 @@ decoded_test_data = {
     '01:00': filtered_test_data['01:00']['T'].to_list()
 }
 
-# Формирование меток для тестовых данных
 metkaN = [
     0 if min(decoded_test_data['01:00'][i], decoded_test_data['04:00'][i], decoded_test_data['07:00'][i]) >= 0 else 1
     for i in range(len(decoded_test_data['01:00']))
 ]
 
-# Формирование входных данных для нейронной сети
 ready_lineN = [
     [
-        metkaN[i],  # Метка
+        metkaN[i], 
         decoded_test_data['13:00']['T'].to_list()[i],
         decoded_test_data['22:00']['T'].to_list()[i],
         decoded_test_data['13:00']['Td'].to_list()[i],
@@ -64,13 +58,13 @@ for i in ready_lineN:
     correct_label = int(i[0])  # Правильный класс (метка)
 
     # Подготовка входных данных
-    inputs = numpy.asfarray(i[1:])
+    inputs = np.asarray(i[1:], dtype=float)
 
     # Получение выходных данных от нейронной сети
     outputs = nn.query(inputs)
 
     # Индекс наибольшего значения является маркерным значением 
-    label = numpy.argmax(outputs)
+    label = np.argmax(outputs)
 
     print('Корректный маркер:', correct_label, 'Полученный маркер:', label, i[1:])
 
@@ -79,7 +73,7 @@ for i in ready_lineN:
     else:
         scorecard.append(0)
 
-scorecard_array = numpy.asarray(scorecard)
+scorecard_array = np.asarray(scorecard)
 print('Верно проклассифицированных экземпляров: ', scorecard_array.sum())
 print('Всего экземпляров: ', scorecard_array.size)
 print("Эффективность = ", scorecard_array.sum() / scorecard_array.size)

@@ -8,10 +8,28 @@ logging.config.fileConfig('logger/logging_config.ini')
 logger = logging.getLogger('WeatherAppLogger')
 
 def sigmoid(x):
+    """
+    Функция активации: сигмоида.
+    """
     return expit(x)
 
-# Класс нейронной сети
 class NeuralNetwork:
+    """
+    Класс нейронной сети.
+
+    Поля:
+    inodes (int): Количество входных узлов.
+    hnodes (int): Количество скрытых узлов.
+    onodes (int): Количество выходных узлов.
+    wih: Матрица весов между входным и скрытым слоями.
+    who: Матрица весов между скрытым и выходным слоями.
+    activation_function: Функция активации, используемая в сети.
+    lr: Коэффициент обучения (learning rate).
+
+    Методы:
+    train(inputs_list, targets_list): Обучение нейронной сети.
+    query(inputs_list): Прогнозирование выходных значений для входных данных.
+    """
     def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
         self.inodes = inputnodes
         self.hnodes = hiddennodes
@@ -23,6 +41,12 @@ class NeuralNetwork:
         self.lr = learningrate
 
     def train(self, inputs_list, targets_list):
+        """
+        Обучение нейронной сети на основе предоставленных данных.
+        Параметры:
+        inputs_list (list или numpy.array): Входные данные для обучения.
+        targets_list (list или numpy.array): Целевые значения для обучения.
+        """
         inputs = np.array(inputs_list, ndmin=2).T
         targets = np.array(targets_list, ndmin=2).T
 
@@ -45,6 +69,12 @@ class NeuralNetwork:
                                      np.transpose(inputs))
 
     def query(self, inputs_list):
+        """
+        Прогнозирование выходных значений для входных данных.
+        Параметры:
+        inputs_list (list или numpy.array): Входные данные для прогноза.
+        Возвращает прогнозируемые выходные значения.
+        """
         inputs = np.array(inputs_list, ndmin=2).T
         hidden_inputs = np.dot(self.wih, inputs)
         hidden_outputs = self.activation_function(hidden_inputs)
@@ -52,12 +82,17 @@ class NeuralNetwork:
         final_outputs = self.activation_function(final_inputs)
         return final_outputs
 
-# Функции для сохранения и загрузки модели
 def save_model(nn, filename):
+    """
+    Функция сохранения модели
+    """
     with open(filename, 'wb') as f:
         pickle.dump(nn, f)
 
 def load_model(filename):
+    """
+    Функция загрузки модели
+    """
     try:
         if not os.path.isfile(filename):
                 raise FileNotFoundError(f"Файл {filename} не найден.")
