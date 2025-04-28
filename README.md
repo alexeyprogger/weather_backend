@@ -25,11 +25,23 @@ python -m app.main
 2. Тренировка нейронной сети:
 
 ```bash
-python -m app.models.train
+python -m app.models.neural_network.train
 ```
 
 3. Прогонка нейронной сети на тестовых данных, показатели эффективности:
 
 ```bash
-python -m app.models.test
+python -m app.models.neural_network.test
+```
+
+4. Тренировка SVM-модели:
+
+```bash
+python -m app.models.svm.train
+```
+
+5. Прогонка SVM-модели на тестовых данных, показатели эффективности:
+
+```bash
+python -m app.models.svm.test
 ```
