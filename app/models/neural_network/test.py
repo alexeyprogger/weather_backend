@@ -1,7 +1,8 @@
+import math
 import numpy as np
 import pandas as pd
 from .model import load_model
-from app.utils.data_preparation import filter_data_by_time, decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity, load_and_prepare_data
+from app.utils.data_preparation import load_and_prepare_data
 
 MODEL_PATH = "neural_network_model.pkl"
 nn = load_model(MODEL_PATH)
@@ -22,9 +23,11 @@ total = 0
 for i in test_data:
     correct_label = int(i[0])
     inputs = np.asarray(i[1:], dtype=float)
+    if any(math.isnan(x) for x in inputs):
+        continue
     outputs = nn.query(inputs)
     label = np.argmax(outputs)
-    print('Корректный маркер:', correct_label, 'Полученный маркер:', label, 'Данные:', i[1:])
+    # print('Корректный маркер:', correct_label, 'Полученный маркер:', label, 'Данные:', i[1:])
     if label == correct_label:
         correct += 1
     total += 1

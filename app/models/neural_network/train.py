@@ -1,7 +1,9 @@
 from .model import NeuralNetwork, save_model
 from app.utils.data_preparation import load_and_prepare_data
 import numpy as np
+import time
 import os
+import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,16 +17,11 @@ EPOCHS_COUNT = int(os.getenv("EPOCHS_COUNT"))
 nn = NeuralNetwork(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, LEARNING_RATE)
 
 training_data = load_and_prepare_data("data/Samara_train.xls")
+validation_data = load_and_prepare_data("data/Samara_test.xls")
 
-for epoch in range(EPOCHS_COUNT):
-    print(f"Epoch {epoch + 1}/{EPOCHS_COUNT}")
-    for i, record in enumerate(training_data):
-        inputs = np.asarray(record[1:], dtype=float)
-        targets = np.zeros(OUTPUT_NODES) + 0.01
-        targets[int(record[0])] = 0.99
-        nn.train(inputs, targets)
-        
-    print(f"Epoch {epoch + 1} completed")
+nn.train(training_data, validation_data, epochs=EPOCHS_COUNT)
+nn.plot_learning_curve()
+
     
 MODEL_PATH = "neural_network_model.pkl"
 save_model(nn, MODEL_PATH)

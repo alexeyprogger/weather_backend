@@ -24,6 +24,7 @@ def load_and_prepare_data(file_path):
             for key, decoder in zip(['T', 'Td', 'N', 'U'], [decode_temp, decode_rosa, decode_rp5_cloudiness, decode_humidity])
         }
 
+
     for time in ['01:00', '04:00', '07:00']:
         decoded_data[time] = filtered_data[time]['T'].tolist()
 
